@@ -9,5 +9,9 @@ class Settings:
     GROQ_API_KEY = os.getenv("GROQ_API_KEY")
     DEFAULT_AI_PROVIDER = os.getenv("AI_PROVIDER", "groq")
     APP_ENV = os.getenv("APP_ENV", "development")
+    
+    # Supabase
+    SUPABASE_URL = os.getenv("SUPABASE_URL")
+    SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 settings = Settings()
