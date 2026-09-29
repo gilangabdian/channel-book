@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronLeft, CheckCircle } from "lucide-react";
+import { signupAction } from "@/app/actions/auth";
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -69,15 +70,19 @@ export default function SignupForm({ onStepChange }: SignupFormProps) {
     goToStep(3);
   });
 
-  const handleSignup = termsForm.handleSubmit(async (data) => {
+  const handleSignup = termsForm.handleSubmit(async (_data) => {
     setIsLoading(true);
     try {
-      // TODO: supabase.auth.signUp({ email, password: credentials.password })
-      console.log("Signup payload:", { 
-        email, 
-        ...credentials, 
-        termsAccepted: data.termsAccepted 
+      const result = await signupAction({
+        email,
+        password: credentials.password as string,
+        username: credentials.username as string,
       });
+
+      if (result?.error) {
+        // FIXME: Replace with proper toast notification in the future
+        alert("Failed to sign up: " + result.error);
+      }
     } finally {
       setIsLoading(false);
     }

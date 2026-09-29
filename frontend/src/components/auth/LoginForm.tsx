@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { loginWithOtpAction, verifyOtpAction } from "@/app/actions/auth";
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -32,11 +33,14 @@ export default function LoginForm() {
     mode: "onSubmit",
   });
 
-  // Klik "Next" di step email
   const handleEmailNext = emailForm.handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: panggil supabase.auth.signInWithOtp({ email: data.email })
+      const result = await loginWithOtpAction(data.email);
+      if (result?.error) {
+        alert("Failed to send code: " + result.error);
+        return;
+      }
       setEmail(data.email);
       setStep("otp");
     } finally {
@@ -44,12 +48,13 @@ export default function LoginForm() {
     }
   });
 
-  // Klik "Verify Code"
   const handleOtpVerify = otpForm.handleSubmit(async (data) => {
     setIsLoading(true);
     try {
-      // TODO: panggil supabase.auth.verifyOtp({ email, token: data.otp, type: 'email' })
-      console.log("OTP verify payload:", { email, otp: data.otp });
+      const result = await verifyOtpAction(email, data.otp);
+      if (result?.error) {
+        alert("Verification failed: " + result.error);
+      }
     } finally {
       setIsLoading(false);
     }

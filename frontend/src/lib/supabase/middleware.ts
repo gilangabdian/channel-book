@@ -34,9 +34,12 @@ export async function updateSession(request: NextRequest) {
 
   // Cek apakah halaman yang diakses adalah halaman auth (login/signup)
   const isAuthRoute = request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup')
+  
+  // Rute yang membutuhkan login
+  const isProtectedRoute = request.nextUrl.pathname.startsWith('/chat') || request.nextUrl.pathname.startsWith('/profile') || request.nextUrl.pathname.startsWith('/wishlist')
 
-  if (!user && !isAuthRoute) {
-    // Jika belum login dan mencoba masuk ke halaman lain (Home dll), arahkan ke /login
+  if (!user && isProtectedRoute) {
+    // Jika belum login dan mencoba masuk ke rute terproteksi, arahkan ke /login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
