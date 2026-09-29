@@ -8,17 +8,16 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  
+  --font-livvic: var(--font-livvic);
+
   /* Brand Colors */
-  --color-primary: #A6B37D;
+  --color-primary: #a6b37d;
   --color-primary-dark: #8c9868;
-  --color-secondary: #FEFAE0;
+  --color-secondary: #fefae0;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-livvic);
 }
