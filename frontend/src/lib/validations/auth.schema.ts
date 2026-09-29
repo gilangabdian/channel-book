@@ -23,14 +23,21 @@ export const signupCredentialsSchema = z
     password: z
       .string()
       .min(8, "Password must be at least 8 characters")
-      .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-      .regex(/[0-9]/, "Password must contain at least one number"),
+      .regex(/[A-Z]/, "Must contain at least one uppercase letter")
+      .regex(/[0-9!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, "Must contain at least one number or special character"),
     confirmPassword: z.string().min(1, "Please confirm your password"),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"], // error ditaruh di field confirmPassword
   });
+
+// Step 3: terms & conditions
+export const signupTermsSchema = z.object({
+  termsAccepted: z.literal(true, {
+    message: "You must accept the terms and privacy policy",
+  }),
+});
 
 // ─── Login ────────────────────────────────────────────────
 export const loginEmailSchema = z.object({
@@ -50,5 +57,6 @@ export const loginOtpSchema = z.object({
 // ─── Inferred Types ───────────────────────────────────────
 export type SignupEmailInput = z.infer<typeof signupEmailSchema>;
 export type SignupCredentialsInput = z.infer<typeof signupCredentialsSchema>;
+export type SignupTermsInput = z.infer<typeof signupTermsSchema>;
 export type LoginEmailInput = z.infer<typeof loginEmailSchema>;
 export type LoginOtpInput = z.infer<typeof loginOtpSchema>;

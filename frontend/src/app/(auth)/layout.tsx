@@ -15,7 +15,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         <Image src="/logo-black.svg" alt="Channel Logo" width={72} height={72} priority />
 
         {/* Main Content Container */}
-        <div className="w-full">{children}</div>
+        <div className="w-full mt-2">{children}</div>
       </div>
     </div>
   );
