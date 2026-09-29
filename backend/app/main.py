@@ -1,26 +1,61 @@
 import sys
 from pathlib import Path
-
-# Setup agar module 'app' bisa diimport dari dalam folder app/
 sys.path.append(str(Path(__file__).parent.parent))
 
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from app.schemas import ChatRequest, ChatResponse
 from app.services.chat_service import ngobrol_dengan_narra, ngobrol_dengan_syra
 
-def main():
-    print("="*50)
-    print("🤖 TESTING MASKOT CHANNEL BOOK")
-    print("="*50)
-    
-    pesan = "Aku lagi ngerasa capek banget dan gak punya harapan sama hidup. Ada rekomendasi buku buatku?"
-    print(f"\nUser: {pesan}\n")
-    
-    print("-" * 20 + " TES NARRA " + "-" * 20)
-    balasan_narra = ngobrol_dengan_narra(pesan)
-    print(f"\nNarra: {balasan_narra}\n")
-    
-    print("-" * 20 + " TES SYRA " + "-" * 20)
-    balasan_syra = ngobrol_dengan_syra(pesan)
-    print(f"\nSyra: {balasan_syra}\n")
+# Inisialisasi Aplikasi FastAPI
+app = FastAPI(
+    title="Channel Book AI API",
+    description="API RESTful for Channel",
+    version="1.0.0"
+)
 
-if __name__ == "__main__":
-    main()
+# Konfigurasi CORS (Sangat penting agar Next.js bisa memanggil API ini)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Di production, ganti dengan URL Vercel/Next.js kamu
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+@app.get("/")
+def read_root():
+    return {
+        "status": "online",
+        "message": "Selamat datang di API Channel Book!",
+        "docs_url": "/docs"
+    }
+
+@app.post(
+    "/api/chat", 
+    response_model=ChatResponse, 
+    tags=["Chat"],
+    responses={
+        400: {"description": "Mascot not found (Bad Request)"}
+    }
+)
+def chat_with_mascot(request: ChatRequest):
+    """
+    Endpoint utama untuk ngobrol dengan AI.
+    - **message**: Pesan yang ingin dikirim
+    - **mascot**: Pilih antara "narra" (fiksi/santai) atau "syra" (non-fiksi/formal)
+    """
+    mascot = request.mascot.lower()
+    pesan = request.message
+    
+    if mascot == "narra":
+        reply = ngobrol_dengan_narra(pesan)
+    elif mascot == "syra":
+        reply = ngobrol_dengan_syra(pesan)
+    else:
+        raise HTTPException(
+            status_code=400, 
+            detail="Maskot tidak dikenal. Silakan pilih 'narra' atau 'syra'."
+        )
+        
+    return ChatResponse(reply=reply, mascot=mascot)

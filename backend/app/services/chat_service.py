@@ -1,7 +1,7 @@
 from app.services.ai_client import chat_with_ai
 from app.utils.prompts import NARRA_PROMPT, SYRA_PROMPT
 
-def ngobrol_dengan_narra(pesan):
+def ngobrol_dengan_narra(pesan: str) -> str:
     """Bicara dengan maskot Narra (Fiksi, santai, kreatif)."""
     return chat_with_ai(
         pesan=pesan,
@@ -9,7 +9,7 @@ def ngobrol_dengan_narra(pesan):
         temperature=0.9 # Lebih tinggi agar lebih kreatif dan absurd
     )
 
-def ngobrol_dengan_syra(pesan):
+def ngobrol_dengan_syra(pesan: str) -> str:
     """Bicara dengan maskot Syra (Non-fiksi, formal, tegang)."""
     return chat_with_ai(
         pesan=pesan,

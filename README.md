@@ -1,0 +1,6 @@
+# Channel Book
+
+channel is a web app that can be used to discover books and discuss it with AI Mascot (Narra & Syra). you can also rate the book, leave a review, make a wishlist, and ask AI to make collection based what you like.
+
+## Why?
+existence of channel is because i am like read a book, so it will easier for me to find the book that i want to read. and i thought many app right now have Agent to help user, so i think it will be more fun if the app have an agent that can help, make, discuss, recommend a book that maybe you will like it. but, i then realize how to make an app that have an agent but not like any other existing app right now, the idea that i have is make an agent that have build in 2 personality that have different style to talk with user so user can choose which one they want to talk with, the think more interesting is user can make they agent, user have ability to create an agent, start with the look of the agent, name, color, and they personality. and the build in agent also can read your uploaded pdf book.
