@@ -1,0 +1,23 @@
+import LoginForm from "@/components/auth/LoginForm";
+import Link from "next/link";
+
+export default function LoginPage() {
+  return (
+    <div className="flex flex-col w-full text-center">
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Welcome Back</h1>
+        <p className="text-gray-500">Sign in to continue to Channel</p>
+      </div>
+
+      {/* Form Logikanya dipisah ke Client Component */}
+      <LoginForm />
+
+      <div className="mt-8 text-sm text-gray-600">
+        Don't have an account?{" "}
+        <Link href="/signup" className="text-primary font-bold hover:underline">
+          Sign up
+        </Link>
+      </div>
+    </div>
+  );
+}
