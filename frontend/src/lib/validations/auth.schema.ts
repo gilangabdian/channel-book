@@ -54,9 +54,20 @@ export const loginOtpSchema = z.object({
     .regex(/^\d+$/, "Code must contain numbers only"),
 });
 
+export const loginCredentialsSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required")
+    .email("Please enter a valid email address"),
+  password: z
+    .string()
+    .min(1, "Password is required"),
+});
+
 // ─── Inferred Types ───────────────────────────────────────
 export type SignupEmailInput = z.infer<typeof signupEmailSchema>;
 export type SignupCredentialsInput = z.infer<typeof signupCredentialsSchema>;
 export type SignupTermsInput = z.infer<typeof signupTermsSchema>;
 export type LoginEmailInput = z.infer<typeof loginEmailSchema>;
 export type LoginOtpInput = z.infer<typeof loginOtpSchema>;
+export type LoginCredentialsInput = z.infer<typeof loginCredentialsSchema>;

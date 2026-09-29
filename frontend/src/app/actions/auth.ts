@@ -54,3 +54,24 @@ export async function verifyOtpAction(email: string, token: string) {
   // Redirect to home page on successful login
   redirect("/")
 }
+
+export async function loginWithPasswordAction(data: Record<string, string>) {
+  const supabase = await createClient()
+
+  const { error } = await supabase.auth.signInWithPassword({
+    email: data.email,
+    password: data.password,
+  })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  redirect("/")
+}
+
+export async function logoutAction() {
+  const supabase = await createClient()
+  await supabase.auth.signOut()
+  redirect("/login")
+}

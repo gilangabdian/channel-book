@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { loginWithOtpAction, verifyOtpAction } from "@/app/actions/auth";
+import { loginWithOtpAction, verifyOtpAction, loginWithPasswordAction } from "@/app/actions/auth";
+import Link from "next/link";
 
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -11,13 +12,15 @@ import AuthGoogleButton from "./AuthGoogleButton";
 import {
   loginEmailSchema,
   loginOtpSchema,
+  loginCredentialsSchema,
   type LoginEmailInput,
   type LoginOtpInput,
+  type LoginCredentialsInput,
 } from "@/lib/validations/auth.schema";
 
 
 export default function LoginForm() {
-  const [step, setStep] = useState<"email" | "otp">("email");
+  const [step, setStep] = useState<"email" | "otp" | "password">("email");
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
@@ -30,6 +33,12 @@ export default function LoginForm() {
   // ── Form OTP ──
   const otpForm = useForm<LoginOtpInput>({
     resolver: zodResolver(loginOtpSchema),
+    mode: "onSubmit",
+  });
+
+  // ── Form Password ──
+  const passwordForm = useForm<LoginCredentialsInput>({
+    resolver: zodResolver(loginCredentialsSchema),
     mode: "onSubmit",
   });
 
@@ -54,6 +63,18 @@ export default function LoginForm() {
       const result = await verifyOtpAction(email, data.otp);
       if (result?.error) {
         alert("Verification failed: " + result.error);
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  });
+
+  const handlePasswordSubmit = passwordForm.handleSubmit(async (data) => {
+    setIsLoading(true);
+    try {
+      const result = await loginWithPasswordAction(data);
+      if (result?.error) {
+        alert("Login failed: " + result.error);
       }
     } finally {
       setIsLoading(false);
@@ -90,6 +111,13 @@ export default function LoginForm() {
             >
               Next
             </Button>
+            <button
+              type="button"
+              onClick={() => setStep("password")}
+              className="text-xs text-gray-500 hover:text-primary transition-colors mt-1"
+            >
+              Log in with password
+            </button>
           </form>
         )}
 
@@ -123,6 +151,45 @@ export default function LoginForm() {
             >
               Verify Code
             </Button>
+          </form>
+        )}
+
+        {step === "password" && (
+          <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-3">
+            <Input
+              type="email"
+              label="Email"
+              {...passwordForm.register("email")}
+              error={passwordForm.formState.errors.email?.message}
+            />
+            <div className="flex flex-col gap-1">
+              <Input
+                type="password"
+                label="Password"
+                {...passwordForm.register("password")}
+                error={passwordForm.formState.errors.password?.message}
+              />
+              <Link 
+                href="/forgot-password" 
+                className="text-[11px] text-gray-400 hover:text-primary transition-colors self-end pr-1"
+              >
+                Forgot Password?
+              </Link>
+            </div>
+            <Button
+              type="submit"
+              isLoading={isLoading}
+              className="py-2.5 text-sm mt-1"
+            >
+              Log in
+            </Button>
+            <button
+              type="button"
+              onClick={() => setStep("email")}
+              className="text-xs text-gray-500 hover:text-primary transition-colors mt-1"
+            >
+              Log in with email code
+            </button>
           </form>
         )}
 

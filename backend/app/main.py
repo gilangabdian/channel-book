@@ -2,8 +2,9 @@ import sys
 from pathlib import Path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.security import get_current_user
 from app.schemas import ChatRequest, ChatResponse
 from app.services.chat_service import ngobrol_dengan_narra, ngobrol_dengan_syra
 
@@ -39,7 +40,7 @@ def read_root():
         400: {"description": "Mascot not found (Bad Request)"}
     }
 )
-def chat_with_mascot(request: ChatRequest):
+def chat_with_mascot(request: ChatRequest, user = Depends(get_current_user)):
     """
     Endpoint utama untuk ngobrol dengan AI.
     - **message**: Pesan yang ingin dikirim
