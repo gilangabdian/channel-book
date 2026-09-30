@@ -57,10 +57,8 @@ export function LeftSidebar({ isLoggedIn }: LeftSidebarProps) {
           {/* Add Book Button */}
           {!isLoggedIn ? (
             <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
-              <PopoverTrigger>
-                <button className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors" title="Add book">
-                  <Plus className="size-4" />
-                </button>
+              <PopoverTrigger className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 rounded-md transition-colors" title="Add book">
+                <Plus className="size-4" />
               </PopoverTrigger>
               <PopoverContent className="w-64 p-4 rounded-xl shadow-xl border-neutral-200" side="right" align="start">
                 <div className="space-y-3">

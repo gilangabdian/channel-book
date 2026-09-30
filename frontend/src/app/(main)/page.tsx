@@ -1,32 +1,115 @@
-export default function Home() {
-  return (
-    <div className="flex flex-col flex-1 items-center py-16 px-4">
-      <div className="max-w-3xl text-center space-y-6">
-        <h1 className="text-4xl font-bold text-gray-900 tracking-tight sm:text-5xl">
-          Discover your next favorite book with <span className="text-[#A6B37D]">AI</span>.
-        </h1>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Search for millions of books, track your reading list, and get personalized recommendations from your AI companions.
-        </p>
-      </div>
+import Link from "next/link";
+import { searchBooks } from "@/features/books/api/books";
+import Image from "next/image";
+import { HeroShowcase } from "./_components/HeroShowcase";
+import { CarouselRow } from "./_components/CarouselRow";
 
-      <div className="mt-16 w-full max-w-5xl">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Popular Books (Coming Soon)</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-          {/* Placeholder cards */}
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="flex flex-col gap-2 group cursor-pointer">
-              <div className="aspect-[2/3] w-full bg-gray-200 rounded-md overflow-hidden relative">
-                <div className="absolute inset-0 bg-black/5 group-hover:bg-black/10 transition-colors"></div>
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 line-clamp-1 group-hover:text-[#A6B37D] transition-colors">Book Title {i}</h3>
-                <p className="text-sm text-gray-500 line-clamp-1">Author Name</p>
-              </div>
-            </div>
-          ))}
-        </div>
+// Tipe untuk menampung buku dari API
+interface Book {
+  id: string;
+  title: string;
+  authors: string[];
+  cover_image: string | null;
+  categories: string[];
+  published_date: string | null;
+}
+
+export default async function Home() {
+  // Fetch data dari backend (error handling basic agar tidak crash jika backend mati)
+  let trendingBooks: Book[] = [];
+  let newReleases: Book[] = [];
+
+  try {
+    const [trendingRes, newRes] = await Promise.all([searchBooks("fiction", 10), searchBooks("fantasy", 10)]);
+
+    trendingBooks = trendingRes.items || [];
+    newReleases = newRes.items || [];
+  } catch (error) {
+    console.error("Failed to fetch books for homepage:", error);
+  }
+
+  // Ambil 5 buku pertama dari trending untuk Hero Showcase
+  const showcaseBooks = trendingBooks.slice(0, 5);
+  // Sisa buku untuk baris Trending
+  const remainingTrending = trendingBooks.slice(5);
+
+  return (
+    <div className="flex flex-col flex-1 pb-16 overflow-x-hidden pt-6 px-4 md:px-8 lg:px-12">
+      {/* 1. DISCOVERY HERO SHOWCASE */}
+      <HeroShowcase books={showcaseBooks} />
+
+      <div className="space-y-12">
+        {/* 2. NEW RELEASES (Horizontal Scroll with < > buttons) */}
+        <CarouselRow title="New Releases" href="/explore/new-releases">
+          {remainingTrending.length > 0
+            ? remainingTrending.map((book) => <BookCard key={book.id} book={book} />)
+            : // Skeletons
+              Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="shrink-0 w-[160px] md:w-[200px] h-[240px] md:h-[300px] bg-neutral-200 animate-pulse rounded-lg snap-start"
+                />
+              ))}
+        </CarouselRow>
+
+        {/* 3. COMMUNITY PICKS (Horizontal Scroll with < > buttons) */}
+        <CarouselRow title="Community Picks" href="/explore/community-picks">
+          {newReleases.length > 0
+            ? newReleases.map((book) => <BookCard key={book.id} book={book} />)
+            : Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="shrink-0 w-[160px] md:w-[200px] h-[240px] md:h-[300px] bg-neutral-200 animate-pulse rounded-lg snap-start"
+                />
+              ))}
+        </CarouselRow>
+        <CarouselRow title="Most Popular" href="/explore/community-picks">
+          {newReleases.length > 0
+            ? newReleases.map((book) => <BookCard key={book.id} book={book} />)
+            : Array.from({ length: 6 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="shrink-0 w-[160px] md:w-[200px] h-[240px] md:h-[300px] bg-neutral-200 animate-pulse rounded-lg snap-start"
+                />
+              ))}
+        </CarouselRow>
       </div>
     </div>
+  );
+}
+
+/**
+ * Komponen Card Buku Minimalis
+ */
+function BookCard({ book }: { book: Book }) {
+  return (
+    <Link href={`/books/${book.id}`} className="shrink-0 snap-start relative block group">
+      {/* Cover Buku */}
+      <div className="w-[160px] md:w-[200px] aspect-[2/3] bg-neutral-100 rounded-lg overflow-hidden relative shadow-sm border border-neutral-200 transition-shadow hover:shadow-md">
+        {book.cover_image ? (
+          <Image
+            src={book.cover_image.replace("http:", "https:")}
+            alt={book.title}
+            fill
+            className="object-cover"
+            sizes="(max-width: 768px) 160px, 200px"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center p-4 text-center bg-[#FEFAE0] text-[#A6B37D] font-serif font-bold text-lg">
+            {book.title}
+          </div>
+        )}
+      </div>
+
+      {/* Teks di bawah cover */}
+      <div className="mt-3 max-w-[160px] md:max-w-[200px]">
+        <h3 className="font-bold text-neutral-900 text-sm md:text-base line-clamp-1 group-hover:text-[#A6B37D] transition-colors">
+          {book.title}
+        </h3>
+        <p className="text-xs md:text-sm text-neutral-500 line-clamp-1 mt-0.5">
+          {book.authors?.join(", ") || "Unknown"}
+        </p>
+      </div>
+    </Link>
   );
 }
