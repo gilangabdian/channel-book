@@ -10,8 +10,9 @@ mengenai buku atau konsultasi buku sesuai keadaannya.
 
 kemudian AI juga bisa dikirimi img / upload files yang mana dia bisa digunakan untuk memberi
 rekomendasi buku bacaan serupa yang sesuai di upload user tadi.
+tapi di sini karena aku implmntasikan AInya itu ngambil dari API gratis yg mana pasti ada limitnya, maka nanti setiap user akan diberi batas spesifik/hari gitu.
 
-AI akan selalu mengingat percakapan user kecuali user menghapus pesan dengan AI itu.
+AI akan selalu mengingat percakapan user kecuali user menghapus pesan dengan AI itu. dan juga kalo bisa user bisa buat percakapan baru gitu, dan jika di percakapan lama user sedang diskusi dengan AI dan tiba2 buka percakapan baru maka chat lama tidak akan terhapus tetapi akan menjadi history gitu.
 Ketika pertama kali melakukan percakapan dengan AI, user harus memilih 2 maskot AI
 (narra atau syra), kedua maskot memiliki tingkah laku respon yang bertolak belakang.
 Begitu pula jika user menghapus riwayat pesan maka user harus memilih maskot lagi.
@@ -27,6 +28,8 @@ User perlu register dulu trus login and then dia akan masuk ke appnya, nanti di 
 ada nih daftar2 buku nya dalam bentuk list seperti e commerce gitu.
 
 fokus ke app web pwa.
+
+terus fokus ke semua bahasa yang digunakan itu Bahasa Inggris.
 
 main color web ini yaitu ini #A6B37D dan secondary colornya ini #FEFAE0
 

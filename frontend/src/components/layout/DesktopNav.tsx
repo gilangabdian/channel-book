@@ -6,7 +6,7 @@ import { CategoriesDesktop } from "./CategoriesDesktop";
 
 export function DesktopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
-    <div className="hidden md:flex items-center gap-8">
+    <div className="hidden lg:flex items-center gap-8">
       <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
         <Image src="/logo.svg" alt="Channel Logo" width={40} height={40} className="w-10 h-10" />
         <span className="font-bold text-xl text-[#A6B37D]">Channel</span>

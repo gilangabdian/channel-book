@@ -138,3 +138,28 @@ body {
     @apply font-sans;
   }
 }
+
+/* Global Custom Scrollbar (macOS style) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(166, 179, 125, 0.3); /* #A6B37D semi-transparent */
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(166, 179, 125, 0.7);
+}
+
+/* Firefox support */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(166, 179, 125, 0.5) transparent;
+}
