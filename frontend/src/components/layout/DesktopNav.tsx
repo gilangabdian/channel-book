@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Home } from "lucide-react";
 import { MyLibraryButton } from "./MyLibraryButton";
+import { CategoriesDesktop } from "./CategoriesDesktop";
 
 export function DesktopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
   return (
@@ -16,6 +17,7 @@ export function DesktopNav({ isLoggedIn }: { isLoggedIn: boolean }) {
           <Home className="size-6" />
         </Link>
         <MyLibraryButton isLoggedIn={isLoggedIn} />
+        <CategoriesDesktop />
       </nav>
     </div>
   );

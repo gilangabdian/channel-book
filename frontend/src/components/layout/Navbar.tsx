@@ -33,7 +33,7 @@ export default async function Navbar() {
         <DesktopNav isLoggedIn={isLoggedIn} />
 
         {/* SEARCH BAR (Flexible center, visible on both mobile and desktop) */}
-        <div className="flex-1 max-w-md -ml-2 mr-2">
+        <div className="flex-1 max-w-xl -ml-2 mr-2">
           <SearchBar />
         </div>
 

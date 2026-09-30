@@ -5,6 +5,7 @@ import { Menu, Home } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { MyLibraryButton } from "./MyLibraryButton";
+import { CategoriesMobile } from "./CategoriesMobile";
 import { useState } from "react";
 
 export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
@@ -28,9 +29,8 @@ export function MobileNav({ isLoggedIn }: { isLoggedIn: boolean }) {
             Home
           </Link>
 
-          <div className="flex items-center gap-4">
-            <MyLibraryButton isLoggedIn={isLoggedIn} isMobile={true} />
-          </div>
+          <MyLibraryButton isLoggedIn={isLoggedIn} isMobile={true} />
+          <CategoriesMobile closeSheet={() => setOpen(false)} />
         </nav>
 
         {/* Footer */}

@@ -15,14 +15,14 @@ export function MyLibraryButton({ isLoggedIn, isMobile = false }: { isLoggedIn: 
   if (isLoggedIn) {
     return (
       <Link href="/my-library" className={buttonClass}>
-        My Library
+        My Book
       </Link>
     );
   }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger className={buttonClass}>My Library</PopoverTrigger>
+      <PopoverTrigger className={buttonClass}>My Book</PopoverTrigger>
       <PopoverContent className="w-64 p-4 mt-2" align="center">
         <div className="flex flex-col gap-3 text-center">
           <p className="text-sm font-medium text-gray-800">Sign in to see your books</p>
