@@ -18,7 +18,6 @@ import {
   type LoginCredentialsInput,
 } from "@/lib/validations/auth.schema";
 
-
 export default function LoginForm() {
   const [step, setStep] = useState<"email" | "otp" | "password">("email");
   const [email, setEmail] = useState("");
@@ -84,7 +83,6 @@ export default function LoginForm() {
   return (
     <div className="flex flex-col items-center gap-3 text-left w-full">
       <div className="w-full max-w-xs flex flex-col gap-3 overflow-hidden">
-
         {/* Google Button — selalu tampil */}
         <AuthGoogleButton text="Sign in with Google" />
 
@@ -104,18 +102,13 @@ export default function LoginForm() {
               {...emailForm.register("email")}
               error={emailForm.formState.errors.email?.message}
             />
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className="py-2.5 text-sm"
-            >
+            <Button type="submit" isLoading={isLoading} className="py-2.5 text-sm">
               Next
             </Button>
             <button
               type="button"
               onClick={() => setStep("password")}
-              className="text-xs text-gray-500 hover:text-primary transition-colors mt-1"
-            >
+              className="cursor-pointer text-xs text-gray-500 hover:text-primary transition-colors mt-1">
               Log in with password
             </button>
           </form>
@@ -126,15 +119,12 @@ export default function LoginForm() {
             <button
               type="button"
               onClick={() => setStep("email")}
-              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary transition-colors self-start"
-            >
+              className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-primary transition-colors self-start">
               <span>←</span>
               <span>{email}</span>
             </button>
 
-            <p className="text-xs text-gray-500">
-              We sent a 6-digit code to your email. Enter it below.
-            </p>
+            <p className="text-xs text-gray-500">We sent a 6-digit code to your email. Enter it below.</p>
 
             <Input
               type="text"
@@ -144,11 +134,7 @@ export default function LoginForm() {
               {...otpForm.register("otp")}
               error={otpForm.formState.errors.otp?.message}
             />
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className="py-2.5 text-sm"
-            >
+            <Button type="submit" isLoading={isLoading} className="py-2.5 text-sm">
               Verify Code
             </Button>
           </form>
@@ -169,30 +155,23 @@ export default function LoginForm() {
                 {...passwordForm.register("password")}
                 error={passwordForm.formState.errors.password?.message}
               />
-              <Link 
-                href="/forgot-password" 
-                className="text-[11px] text-gray-400 hover:text-primary transition-colors self-end pr-1"
-              >
+              <Link
+                href="/forgot-password"
+                className="text-[11px] text-gray-400 hover:text-primary transition-colors self-end pr-1">
                 Forgot Password?
               </Link>
             </div>
-            <Button
-              type="submit"
-              isLoading={isLoading}
-              className="py-2.5 text-sm mt-1"
-            >
+            <Button type="submit" isLoading={isLoading} className="py-2.5 text-sm mt-1">
               Log in
             </Button>
             <button
               type="button"
               onClick={() => setStep("email")}
-              className="text-xs text-gray-500 hover:text-primary transition-colors mt-1"
-            >
+              className="cursor-pointer text-xs text-gray-500 hover:text-primary transition-colors mt-1">
               Log in with email code
             </button>
           </form>
         )}
-
       </div>
     </div>
   );

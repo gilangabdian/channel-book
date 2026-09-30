@@ -101,3 +101,10 @@ Simpan hasil percakapan tersebut ke tabel messages di Supabase.
 Sambungkan pencarian buku di UI dengan Google Books API.
 
 ---
+
+1. selalu benarkan logicku dan kerjakan dengan best, terus maintainable, dan scalable codenya.
+2. hanya lakukan apa yang aku lakukan
+3. jika kamu melakukan update / ubah code maka jangan hapus seluruhnya dan kamu timpa dengan yang baru, tetapi cukup update/ubah yang diperlukan aja
+4. jika ada warna color ini: text-gray-[...] selalu ubah menjadi ke text-neutral-[...]. aku lebih prefer ke neutral dibanding gray.
+
+---

@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
-import { Livvic } from "next/font/google";
+import { Livvic, Inter, Noto_Serif } from "next/font/google";
 import "./globals.css";
+import { cn } from "@/lib/utils";
+
+const notoSerifHeading = Noto_Serif({subsets:['latin'],variable:'--font-heading'});
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const livvic = Livvic({
   variable: "--font-livvic",
@@ -16,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${livvic.variable} h-full antialiased`}>
+    <html lang="en" className={cn("h-full", "antialiased", livvic.variable, "font-sans", inter.variable, notoSerifHeading.variable)}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
