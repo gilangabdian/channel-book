@@ -102,9 +102,10 @@ Sambungkan pencarian buku di UI dengan Google Books API.
 
 ---
 
-1. selalu benarkan logicku dan kerjakan dengan best, terus maintainable, dan scalable codenya.
+1. selalu benarkan logicku dan kerjakan dengan best practice, terus maintainable, dan scalable codenya sehingga mudah di improve / menambahkan fitur baru di masa depan itu tidak merusak fitur2 yg ada.
 2. hanya lakukan apa yang aku lakukan
 3. jika kamu melakukan update / ubah code maka jangan hapus seluruhnya dan kamu timpa dengan yang baru, tetapi cukup update/ubah yang diperlukan aja
 4. jika ada warna color ini: text-gray-[...] selalu ubah menjadi ke text-neutral-[...]. aku lebih prefer ke neutral dibanding gray.
+5. ingan projek ini baik backend/ atau frontend/ menggunakan arsitektur folder DDD (Domain Driven Design) atau FSD (Feature Sliced Design)
 
 ---

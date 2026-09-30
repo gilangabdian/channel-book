@@ -1,4 +1,4 @@
-from app.services.ai_client import chat_with_ai
+from app.domains.chat.ai_client import chat_with_ai
 from app.utils.prompts import NARRA_PROMPT, SYRA_PROMPT
 
 def ngobrol_dengan_narra(pesan: str) -> str:

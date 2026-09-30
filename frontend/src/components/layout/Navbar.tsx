@@ -22,7 +22,7 @@ export default async function Navbar() {
   const isLoggedIn = !!user;
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-gray-200 bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full border-b border-neutral-200 bg-white/95 backdrop-blur-md">
       <div className="container mx-auto max-w-7xl flex h-16 items-center px-4 sm:px-8 justify-between gap-4">
         {/* MOBILE MENU (Visible only on small screens) */}
         <div className="md:hidden flex items-center">
