@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CarouselRow } from "./CarouselRow";
+import { WishlistButton } from "@/components/books/WishlistButton";
 
 interface Book {
   id: string;
@@ -203,6 +204,9 @@ export function HeroShowcase({ books }: HeroShowcaseProps) {
                     {book.title}
                   </div>
                 )}
+                
+                {/* Wishlist Button (Client Component) */}
+                <WishlistButton bookId={book.id} />
               </div>
               <div className="mt-3 max-w-[160px]">
                 <h3 className="font-bold text-neutral-900 text-sm line-clamp-1 group-hover:text-[#A6B37D] transition-colors">

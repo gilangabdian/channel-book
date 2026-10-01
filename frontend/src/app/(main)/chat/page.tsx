@@ -99,34 +99,7 @@ export default function MobileChatPage() {
           </PopoverContent>
         </Popover>
 
-        <form onSubmit={handleSend} className="relative flex items-end bg-neutral-100 border border-neutral-200 rounded-3xl focus-within:ring-2 focus-within:ring-[#A6B37D]/50 focus-within:border-[#A6B37D] transition-all p-1">
-          {/* Attachment Icon with Popover */}
-          <Popover open={attachPopoverOpen} onOpenChange={setAttachPopoverOpen}>
-            <PopoverTrigger type="button" className="pl-3 pr-2 py-3 text-neutral-400 hover:text-neutral-700 transition-colors">
-              <Paperclip className="size-5" />
-            </PopoverTrigger>
-            <PopoverContent side="top" align="start" className="w-48 p-2 rounded-xl shadow-lg border-neutral-200 mb-2">
-              <div className="flex flex-col gap-1">
-                <button 
-                  type="button" 
-                  onClick={() => { setAttachPopoverOpen(false); /* Handle img upload */ }} 
-                  className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors text-left"
-                >
-                  <ImageIcon className="size-4 text-[#A6B37D]" />
-                  <span>Upload Image</span>
-                </button>
-                <button 
-                  type="button" 
-                  onClick={() => { setAttachPopoverOpen(false); /* Handle pdf upload */ }} 
-                  className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors text-left"
-                >
-                  <FileText className="size-4 text-[#A6B37D]" />
-                  <span>Upload PDF</span>
-                </button>
-              </div>
-            </PopoverContent>
-          </Popover>
-
+        <form onSubmit={handleSend} className="relative flex flex-col bg-neutral-100 border border-neutral-200 rounded-3xl focus-within:ring-2 focus-within:ring-[#A6B37D]/50 focus-within:border-[#A6B37D] transition-all p-1.5">
           {/* Input Field (Textarea) */}
           <textarea 
             value={message}
@@ -139,20 +112,50 @@ export default function MobileChatPage() {
             }}
             placeholder="Ask anything..." 
             rows={1}
-            className="flex-1 bg-transparent py-3 px-1 text-sm focus:outline-none placeholder:text-neutral-400 resize-none max-h-[150px] leading-relaxed"
+            className="w-full bg-transparent px-3 pt-2 pb-1 text-sm focus:outline-none placeholder:text-neutral-400 resize-none max-h-[150px] leading-relaxed text-left align-top"
           />
 
-          {/* Send Button */}
-          <button 
-            type="submit" 
-            className={cn(
-              "mb-1.5 mr-1.5 p-2 rounded-full transition-colors shrink-0",
-              message.trim() ? "bg-[#A6B37D] text-white hover:bg-[#8f9b6b]" : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
-            )}
-            disabled={!message.trim()}
-          >
-            <ArrowUp className="size-4" />
-          </button>
+          {/* Bottom Row: Attach & Send */}
+          <div className="flex items-center justify-between mt-1 px-1">
+            {/* Attachment Icon with Popover */}
+            <Popover open={attachPopoverOpen} onOpenChange={setAttachPopoverOpen}>
+              <PopoverTrigger type="button" className="p-1.5 text-neutral-400 hover:text-neutral-700 transition-colors rounded-full hover:bg-neutral-200">
+                <Paperclip className="size-5" />
+              </PopoverTrigger>
+              <PopoverContent side="top" align="start" className="w-48 p-2 rounded-xl shadow-lg border-neutral-200 mb-2">
+                <div className="flex flex-col gap-1">
+                  <button 
+                    type="button" 
+                    onClick={() => { setAttachPopoverOpen(false); /* Handle img upload */ }} 
+                    className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors text-left"
+                  >
+                    <ImageIcon className="size-4 text-[#A6B37D]" />
+                    <span>Upload Image</span>
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => { setAttachPopoverOpen(false); /* Handle pdf upload */ }} 
+                    className="flex items-center gap-3 px-3 py-2 text-sm text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors text-left"
+                  >
+                    <FileText className="size-4 text-[#A6B37D]" />
+                    <span>Upload PDF</span>
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            {/* Send Button */}
+            <button 
+              type="submit" 
+              className={cn(
+                "p-1.5 rounded-full transition-colors shrink-0",
+                message.trim() ? "bg-[#A6B37D] text-white hover:bg-[#8f9b6b]" : "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+              )}
+              disabled={!message.trim()}
+            >
+              <ArrowUp className="size-5" />
+            </button>
+          </div>
         </form>
       </div>
 

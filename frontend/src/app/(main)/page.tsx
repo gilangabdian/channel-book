@@ -3,6 +3,7 @@ import { searchBooks } from "@/features/books/api/books";
 import Image from "next/image";
 import { HeroShowcase } from "./_components/HeroShowcase";
 import { CarouselRow } from "./_components/CarouselRow";
+import { WishlistButton } from "@/components/books/WishlistButton";
 
 // Tipe untuk menampung buku dari API
 interface Book {
@@ -99,6 +100,9 @@ function BookCard({ book }: { book: Book }) {
             {book.title}
           </div>
         )}
+        
+        {/* Wishlist Button (Client Component) */}
+        <WishlistButton bookId={book.id} />
       </div>
 
       {/* Teks di bawah cover */}

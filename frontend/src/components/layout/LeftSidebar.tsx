@@ -93,14 +93,14 @@ export function LeftSidebar({ isLoggedIn }: LeftSidebarProps) {
         <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-2 mt-2 custom-scrollbar">
           {!isLoggedIn ? (
             isExpanded ? (
-              <div className="flex flex-col items-center justify-center text-center bg-neutral-50 rounded-lg border border-neutral-100 border-dashed h-32 px-4">
+              <div className="flex flex-col items-center justify-center text-center h-32 px-4">
                 <span className="text-xs text-neutral-500 font-medium">Your reading list is empty.</span>
               </div>
             ) : null
           ) : (
             /* TODO: Active Books List */
             isExpanded ? (
-              <div className="flex flex-col items-center justify-center text-center bg-neutral-50 rounded-lg border border-neutral-100 border-dashed h-32 px-4">
+              <div className="flex flex-col items-center justify-center text-center h-32 px-4">
                 <span className="text-xs text-neutral-500 font-medium">No active books. Click + to add.</span>
               </div>
             ) : null
