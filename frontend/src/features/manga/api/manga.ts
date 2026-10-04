@@ -27,3 +27,16 @@ export async function searchManga(query: string, limit = 10) {
     return { items: [], total_items: 0 };
   }
 }
+
+export async function getMangaDetail(id: string) {
+  try {
+    const res = await fetch(`${API_URL}/manga/${id}`);
+    if (!res.ok) {
+      throw new Error(`Failed to get manga detail: ${res.status}`);
+    }
+    return await res.json();
+  } catch (error) {
+    console.error("Error in getMangaDetail:", error);
+    return null;
+  }
+}

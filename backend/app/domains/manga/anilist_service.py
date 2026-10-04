@@ -14,7 +14,7 @@ query ($query: String, $page: Int, $perPage: Int) {
     pageInfo {
       total
     }
-    media (search: $query, type: MANGA, sort: SEARCH_MATCH) {
+    media (search: $query, type: MANGA, sort: SEARCH_MATCH, isAdult: false) {
       id
       title {
         romaji
@@ -88,7 +88,7 @@ query ($genre: String, $page: Int, $perPage: Int) {
     pageInfo {
       total
     }
-    media (genre: $genre, type: MANGA, sort: POPULARITY_DESC) {
+    media (genre: $genre, type: MANGA, sort: POPULARITY_DESC, isAdult: false) {
       id
       title {
         romaji
@@ -122,7 +122,7 @@ query ($page: Int, $perPage: Int) {
     pageInfo {
       total
     }
-    media (type: MANGA, sort: POPULARITY_DESC) {
+    media (type: MANGA, sort: POPULARITY_DESC, isAdult: false) {
       id
       title {
         romaji

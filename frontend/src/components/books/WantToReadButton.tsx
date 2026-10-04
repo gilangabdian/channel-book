@@ -9,9 +9,10 @@ interface WantToReadButtonProps {
   itemId: string;
   itemType: "book" | "manga";
   className?: string;
+  variant?: "icon" | "solid";
 }
 
-export function WantToReadButton({ itemId, itemType, className }: WantToReadButtonProps) {
+export function WantToReadButton({ itemId, itemType, className, variant = "icon" }: WantToReadButtonProps) {
   const router = useRouter();
   const [isSaved, setIsSaved] = useState(false);
   
@@ -32,6 +33,33 @@ export function WantToReadButton({ itemId, itemType, className }: WantToReadButt
     // TODO: Call API to save/remove from want_to_read
     console.log(`Toggle want to read for ${itemType} with ID ${itemId}`);
   };
+
+  if (variant === "solid") {
+    return (
+      <button
+        onClick={handleClick}
+        className={cn(
+          "w-full flex items-center justify-center gap-2 py-3.5 px-8 rounded-lg font-bold transition-colors shadow-sm",
+          isSaved 
+            ? "bg-[#8f9b6b] text-white hover:bg-[#8f9b6b]/90" 
+            : "bg-[#A6B37D] text-white hover:bg-[#8f9b6b]",
+          className
+        )}
+      >
+        {isSaved ? (
+          <>
+            <BookmarkCheck className="size-5" />
+            <span>Saved</span>
+          </>
+        ) : (
+          <>
+            <BookmarkPlus className="size-5" />
+            <span>Want to Read</span>
+          </>
+        )}
+      </button>
+    );
+  }
 
   return (
     <button

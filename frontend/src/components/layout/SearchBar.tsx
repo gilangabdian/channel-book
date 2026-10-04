@@ -25,7 +25,7 @@ export function SearchBar() {
   // Live search states
   const [results, setResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const debouncedQuery = useDebounce(query, 500);
+  const debouncedQuery = useDebounce(query, 800);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -119,7 +119,7 @@ export function SearchBar() {
     e.preventDefault();
     if (query.trim()) {
       saveSearch(query);
-      router.push(`/?q=${encodeURIComponent(query)}`);
+      router.push(`/search?q=${encodeURIComponent(query)}`);
       setIsFocused(false);
     }
   };
@@ -127,7 +127,7 @@ export function SearchBar() {
   const handleRecentSearchClick = (term: string) => {
     setQuery(term);
     saveSearch(term);
-    router.push(`/?q=${encodeURIComponent(term)}`);
+    router.push(`/search?q=${encodeURIComponent(term)}`);
     setIsFocused(false);
   };
 
@@ -143,8 +143,7 @@ export function SearchBar() {
 
   const handleResultClick = (item: SearchResult) => {
     saveSearch(item.title);
-    // In a real app we might route to the detail page, but for now just search it or route to detail if available
-    router.push(`/?q=${encodeURIComponent(item.title)}`);
+    router.push(`/item/${item.type}/${item.id}`);
     setIsFocused(false);
   };
 
@@ -166,11 +165,25 @@ export function SearchBar() {
         <input
           type="text"
           placeholder="Search"
-          className="w-full bg-neutral-50 border border-neutral-200 text-sm rounded-full pl-10 pr-4 py-2 outline-none focus:bg-white focus:border-[#A6B37D] focus:ring-2 focus:ring-[#A6B37D]/20 transition-all"
+          className="w-full bg-neutral-50 border border-neutral-200 text-neutral-900 text-sm rounded-full pl-10 pr-10 py-2 outline-none focus:bg-white focus:border-[#A6B37D] focus:ring-2 focus:ring-[#A6B37D]/20 transition-all"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
         />
+        {query.length > 0 && (
+          <button
+            type="button"
+            onClick={() => {
+              setQuery("");
+              // Optional: Keep focus on input after clearing
+              const input = document.querySelector("input[type='text']") as HTMLInputElement;
+              if (input) input.focus();
+            }}
+            className="absolute inset-y-0 right-3 flex items-center text-neutral-400 hover:text-neutral-600 transition-colors"
+          >
+            <X className="size-4" />
+          </button>
+        )}
       </form>
 
       {/* RECENT SEARCHES & LIVE SEARCH POPUP */}
@@ -271,7 +284,7 @@ export function SearchBar() {
                         <div className="flex-1 min-w-0 flex flex-col">
                           <span className="text-sm font-medium text-neutral-800 truncate">{item.title}</span>
                           <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">
-                            {item.type} {item.source ? `• ${item.source}` : ""}
+                            {item.type}
                           </span>
                         </div>
 
