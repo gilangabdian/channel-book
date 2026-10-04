@@ -2,24 +2,24 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bookmark } from "lucide-react";
+import { BookmarkPlus, BookmarkCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface WishlistButtonProps {
-  bookId: string;
+interface WantToReadButtonProps {
+  itemId: string;
+  itemType: "book" | "manga";
   className?: string;
 }
 
-export function WishlistButton({ bookId, className }: WishlistButtonProps) {
+export function WantToReadButton({ itemId, itemType, className }: WantToReadButtonProps) {
   const router = useRouter();
-  const [isHovered, setIsHovered] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   
   // TODO: Replace with real auth check
   const isLoggedIn = false; 
 
   const handleClick = (e: React.MouseEvent) => {
-    e.preventDefault(); // Prevent navigating to the book page if it's inside a Link
+    e.preventDefault(); // Prevent navigating to the item page if it's inside a Link
     e.stopPropagation();
 
     if (!isLoggedIn) {
@@ -29,15 +29,14 @@ export function WishlistButton({ bookId, className }: WishlistButtonProps) {
 
     // Toggle saved state
     setIsSaved(!isSaved);
-    // TODO: Call API to save/remove from wishlist
+    // TODO: Call API to save/remove from want_to_read
+    console.log(`Toggle want to read for ${itemType} with ID ${itemId}`);
   };
 
   return (
     <button
       onClick={handleClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      title={isSaved ? "Remove from wishlist" : "Add to wishlist"}
+      title={isSaved ? "Remove from Want to Read" : "Want to Read"}
       className={cn(
         "absolute top-2 right-2 p-2 rounded-full shadow-sm bg-white/90 backdrop-blur-sm border border-neutral-200 transition-all z-20",
         "hover:bg-[#A6B37D] hover:text-white hover:border-[#A6B37D]",
@@ -46,12 +45,11 @@ export function WishlistButton({ bookId, className }: WishlistButtonProps) {
         className
       )}
     >
-      <Bookmark 
-        className={cn(
-          "size-4 transition-all", 
-          isSaved || isHovered ? "fill-current" : ""
-        )} 
-      />
+      {isSaved ? (
+        <BookmarkCheck className="size-4" />
+      ) : (
+        <BookmarkPlus className="size-4" />
+      )}
     </button>
   );
 }

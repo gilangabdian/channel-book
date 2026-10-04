@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.domains.books.router import router as books_router
 from app.domains.chat.router import router as chat_router
+from app.domains.manga.router import router as manga_router
 
 # Inisialisasi Aplikasi FastAPI
 app = FastAPI(
@@ -17,6 +18,7 @@ app = FastAPI(
 # Register routers (Domain-Based)
 app.include_router(books_router)
 app.include_router(chat_router)
+app.include_router(manga_router)
 
 # Konfigurasi CORS
 app.add_middleware(

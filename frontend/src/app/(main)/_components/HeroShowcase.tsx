@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CarouselRow } from "./CarouselRow";
-import { WishlistButton } from "@/components/books/WishlistButton";
+import { WantToReadButton } from "@/components/books/WantToReadButton";
 
 interface Book {
   id: string;
@@ -26,7 +26,7 @@ export function HeroShowcase({ books }: HeroShowcaseProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [progress, setProgress] = useState(0);
 
-  // Auto-play timer (hanya jalan di desktop)
+  // Auto-play timer
   useEffect(() => {
     if (!books || books.length === 0) return;
 
@@ -35,17 +35,19 @@ export function HeroShowcase({ books }: HeroShowcaseProps) {
     const step = (INTERVAL / DURATION) * 100;
 
     const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          setActiveIndex((current) => (current + 1) % books.length);
-          return 0;
-        }
-        return prev + step;
-      });
+      setProgress((prev) => prev + step);
     }, INTERVAL);
 
     return () => clearInterval(timer);
   }, [books, activeIndex]); // Restart timer saat activeIndex berubah manual
+
+  // Progress watcher: Pindah slide ketika progress penuh
+  useEffect(() => {
+    if (progress >= 100) {
+      setActiveIndex((current) => (current + 1) % (books?.length || 1));
+      setProgress(0);
+    }
+  }, [progress, books]);
 
   if (!books || books.length === 0) {
     return <div className="h-64 bg-neutral-100 flex items-center justify-center animate-pulse" />;
@@ -160,11 +162,11 @@ export function HeroShowcase({ books }: HeroShowcaseProps) {
                 </div>
               </div>
 
-              <h1 className="text-4xl lg:text-5xl font-bold font-serif leading-tight text-neutral-900 line-clamp-3">
+              <h1 className="text-4xl lg:text-5xl font-bold leading-tight text-neutral-900 line-clamp-3">
                 {activeBook.title}
               </h1>
 
-              <p className="text-xl text-neutral-500 font-medium font-serif italic">
+              <p className="text-xl text-neutral-500 font-medium italic">
                 by {activeBook.authors?.join(", ") || "Unknown Author"}
               </p>
 
@@ -200,13 +202,13 @@ export function HeroShowcase({ books }: HeroShowcaseProps) {
                     sizes="160px"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center p-4 text-center bg-[#FEFAE0] text-[#A6B37D] font-serif font-bold text-lg">
+                  <div className="w-full h-full flex items-center justify-center p-4 text-center bg-[#FEFAE0] text-[#A6B37D] font-bold text-lg">
                     {book.title}
                   </div>
                 )}
-                
+
                 {/* Wishlist Button (Client Component) */}
-                <WishlistButton bookId={book.id} />
+                <WantToReadButton itemId={book.id} itemType="book" />
               </div>
               <div className="mt-3 max-w-[160px]">
                 <h3 className="font-bold text-neutral-900 text-sm line-clamp-1 group-hover:text-[#A6B37D] transition-colors">

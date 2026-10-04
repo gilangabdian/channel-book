@@ -40,7 +40,7 @@ export function CategoriesDesktop() {
         <ChevronDown className={cn("size-4 transition-transform duration-200", open && "rotate-180")} />
       </PopoverTrigger>
       <PopoverContent
-        className="w-[800px] p-6 mt-2 rounded-xl shadow-2xl border border-white/50 bg-transparent bg-gradient-to-b from-[#f4f6ef] from-45% to-[#f4f6ef]/0 backdrop-blur-md"
+        className="w-[800px] p-6 mt-2 rounded-xl shadow-2xl border border-white/50 bg-transparent bg-gradient-to-b from-[#f4f6ef] from-65% to-[#f4f6ef]/50 backdrop-blur-md"
         align="start">
         <div className="space-y-6">
           {/* Top Categories Grid */}
