@@ -20,7 +20,7 @@ export function LeftSidebar({ isLoggedIn }: LeftSidebarProps) {
 
   const [showAuthPopup, setShowAuthPopup] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const [popupPos, setPopupPos] = useState({ top: 0, left: 0 });
+  const [popupPos, setPopupPos] = useState({ top: -9999, left: -9999 });
 
   const router = useRouter();
 
@@ -37,6 +37,8 @@ export function LeftSidebar({ isLoggedIn }: LeftSidebarProps) {
         top: rect.top,
         left: rect.right + 16,
       });
+    } else {
+      setPopupPos({ top: -9999, left: -9999 });
     }
   }, [showAuthPopup, isExpanded]);
 
@@ -175,7 +177,7 @@ export function LeftSidebar({ isLoggedIn }: LeftSidebarProps) {
       {showAuthPopup && typeof document !== "undefined" && createPortal(
         <div 
           style={{ top: popupPos.top, left: popupPos.left }}
-          className="custom-auth-popup fixed w-[320px] p-4 rounded-xl shadow-xl border border-neutral-200 bg-white text-neutral-800 z-[9999] animate-in fade-in zoom-in-95 duration-200"
+          className="custom-auth-popup fixed w-[320px] p-4 rounded-xl shadow-xl border border-neutral-200 bg-white text-neutral-800 z-[9999]"
         >
           {/* Arrow pointing Left */}
           <div className="absolute top-8 -left-[6px] w-3 h-3 bg-white border-l border-b border-neutral-200 rotate-45 rounded-sm" />

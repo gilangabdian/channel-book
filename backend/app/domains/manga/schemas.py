@@ -13,6 +13,7 @@ class MangaSummary(BaseModel):
     cover_image: str | None = None
     categories: list[str] = []
     published_date: str | None = None
+    rating: float | None = None
     source: str = Field(default="jikan", description="Sumber data")
     type: str = Field(default="manga", description="Tipe item untuk frontend")
 

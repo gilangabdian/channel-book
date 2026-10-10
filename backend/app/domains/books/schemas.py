@@ -13,7 +13,9 @@ class BookSummary(BaseModel):
     cover_image: str | None = None
     categories: list[str] = []
     published_date: str | None = None
+    rating: float | None = None
     source: str = Field(default="google", description="Sumber data: 'google' | 'openlibrary'")
+    type: str = Field(default="book", description="Tipe item untuk frontend")
 
 
 class BookDetail(BookSummary):

@@ -3,8 +3,15 @@ Service untuk berkomunikasi dengan Google Books API.
 Menangani search, detail, dan normalisasi data.
 """
 import httpx
+import asyncio
+from typing import Dict, Any
 from app.core.config import settings
 from app.domains.books.schemas import BookSummary, BookDetail
+
+GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1"
+
+_SEARCH_CACHE: Dict[str, Any] = {}
+_google_books_semaphore = asyncio.Semaphore(2)
 
 GOOGLE_BOOKS_BASE = "https://www.googleapis.com/books/v1"
 
@@ -30,7 +37,9 @@ def _parse_book_summary(item: dict) -> BookSummary:
         cover_image=cover,
         categories=info.get("categories", []),
         published_date=info.get("publishedDate"),
+        rating=info.get("averageRating"),
         source="google",
+        type="book",
     )
 
 
@@ -76,28 +85,52 @@ def _parse_book_detail(item: dict) -> BookDetail:
     )
 
 
-async def search_books(query: str, max_results: int = 20, start_index: int = 0) -> dict:
+async def search_books(query: str, max_results: int = 20, start_index: int = 0, order_by: str = "relevance") -> dict:
     """
     Cari buku di Google Books API.
     Returns dict dengan total_items dan list of BookSummary.
     """
+    cache_key = f"{query}_{max_results}_{start_index}_{order_by}"
+    if cache_key in _SEARCH_CACHE:
+        return _SEARCH_CACHE[cache_key]
+
     params = {
         "q": query,
         "maxResults": min(max_results, 40),  # Google Books max = 40
         "startIndex": start_index,
         "key": settings.GOOGLE_BOOKS_API_KEY,
-        "fields": "totalItems,items(id,volumeInfo(title,authors,imageLinks/thumbnail,imageLinks/smallThumbnail,categories,publishedDate))",
+        "orderBy": order_by,
+        "fields": "totalItems,items(id,volumeInfo(title,authors,imageLinks/thumbnail,imageLinks/smallThumbnail,categories,publishedDate,averageRating))",
     }
 
-    async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.get(f"{GOOGLE_BOOKS_BASE}/volumes", params=params)
-        resp.raise_for_status()
-        data = resp.json()
+    async with _google_books_semaphore:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.get(f"{GOOGLE_BOOKS_BASE}/volumes", params=params)
+            resp.raise_for_status()
+            data = resp.json()
 
     total = data.get("totalItems", 0)
     items = [_parse_book_summary(item) for item in data.get("items", [])]
 
-    return {"total_items": total, "items": items}
+    if not any(query.startswith(prefix) for prefix in ("subject:", "inauthor:", "intitle:")):
+        q_lower = query.lower()
+        items = [
+            item for item in items 
+            if q_lower in item.title.lower() or any(q_lower in author.lower() for author in item.authors)
+        ]
+
+    # Deduplikasi berdasarkan ID untuk mencegah React Key Error di frontend
+    unique_items = []
+    seen_ids = set()
+    for item in items:
+        if item.id not in seen_ids:
+            seen_ids.add(item.id)
+            unique_items.append(item)
+    items = unique_items
+
+    result = {"total_items": total, "items": items}
+    _SEARCH_CACHE[cache_key] = result
+    return result
 
 
 async def get_book_detail(volume_id: str) -> BookDetail:
@@ -122,5 +155,5 @@ async def search_books_by_subject(subject: str, max_results: int = 10) -> list[B
     Cari buku berdasarkan subject/kategori di Google Books.
     Dipakai sebagai fallback jika Open Library gagal.
     """
-    result = await search_books(f"subject:{subject}", max_results=max_results)
+    result = await search_books(subject, max_results=max_results)
     return result["items"]

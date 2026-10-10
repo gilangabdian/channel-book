@@ -14,7 +14,7 @@ query ($query: String, $page: Int, $perPage: Int) {
     pageInfo {
       total
     }
-    media (search: $query, type: MANGA, sort: SEARCH_MATCH, isAdult: false) {
+    media (search: $query, type: MANGA, sort: SEARCH_MATCH, isAdult: false, genre_not_in: ["Ecchi", "Hentai"]) {
       id
       title {
         romaji
@@ -27,6 +27,7 @@ query ($query: String, $page: Int, $perPage: Int) {
       startDate {
         year
       }
+      averageScore
       staff {
         edges {
           role
@@ -88,7 +89,7 @@ query ($genre: String, $page: Int, $perPage: Int) {
     pageInfo {
       total
     }
-    media (genre: $genre, type: MANGA, sort: POPULARITY_DESC, isAdult: false) {
+    media (genre: $genre, type: MANGA, sort: POPULARITY_DESC, isAdult: false, genre_not_in: ["Ecchi", "Hentai"]) {
       id
       title {
         romaji
@@ -101,6 +102,7 @@ query ($genre: String, $page: Int, $perPage: Int) {
       startDate {
         year
       }
+      averageScore
       staff {
         edges {
           role
@@ -122,7 +124,7 @@ query ($page: Int, $perPage: Int) {
     pageInfo {
       total
     }
-    media (type: MANGA, sort: POPULARITY_DESC, isAdult: false) {
+    media (type: MANGA, sort: POPULARITY_DESC, isAdult: false, genre_not_in: ["Ecchi", "Hentai"]) {
       id
       title {
         romaji
@@ -135,12 +137,85 @@ query ($page: Int, $perPage: Int) {
       startDate {
         year
       }
+      averageScore
       staff {
         edges {
           role
           node {
             name {
               full
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+RECOMMENDATIONS_QUERY = """
+query ($id: Int) {
+  Media(id: $id, type: MANGA) {
+    recommendations(sort: RATING_DESC, page: 1, perPage: 10) {
+      nodes {
+        mediaRecommendation {
+          id
+          title {
+            romaji
+            english
+          }
+          coverImage {
+            large
+          }
+          genres
+          startDate {
+            year
+          }
+          averageScore
+          staff {
+            edges {
+              role
+              node {
+                name {
+                  full
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+"""
+
+AUTHOR_WORKS_QUERY = """
+query ($search: String) {
+  Staff(search: $search) {
+    staffMedia(type: MANGA, sort: POPULARITY_DESC, page: 1, perPage: 10) {
+      edges {
+        node {
+          id
+          title {
+            romaji
+            english
+          }
+          coverImage {
+            large
+          }
+          genres
+          startDate {
+            year
+          }
+          averageScore
+          staff {
+            edges {
+              role
+              node {
+                name {
+                  full
+                }
+              }
             }
           }
         }
@@ -177,6 +252,10 @@ def _parse_manga_summary(item: dict) -> MangaSummary:
     staff_edges = item.get("staff", {}).get("edges", [])
     authors = _extract_authors(staff_edges)
 
+    score = item.get("averageScore")
+    if score:
+        score = score / 10.0
+
     return MangaSummary(
         id=str(item.get("id")),
         title=title,
@@ -184,6 +263,7 @@ def _parse_manga_summary(item: dict) -> MangaSummary:
         cover_image=cover,
         categories=genres,
         published_date=published_date,
+        rating=score,
         source="anilist",
         type="manga",
     )
@@ -207,6 +287,17 @@ def _parse_manga_detail(item: dict) -> MangaDetail:
     if score:
         score = score / 10.0
 
+    import re
+    raw_desc = item.get("description") or ""
+    # Clean up (Source: ...) and Notes section
+    clean_desc = re.sub(r'(?i)\(Source:.*', '', raw_desc, flags=re.DOTALL)
+    clean_desc = re.sub(r'(?i)(<br\s*/?>\s*)*<i>\s*Note[s]?:.*', '', clean_desc, flags=re.DOTALL)
+    clean_desc = re.sub(r'(?i)(<br\s*/?>\s*)*Note[s]?:.*', '', clean_desc, flags=re.DOTALL)
+    
+    clean_desc = clean_desc.strip()
+    if clean_desc.endswith("<br>"):
+        clean_desc = clean_desc[:-4].strip()
+        
     return MangaDetail(
         id=str(item.get("id")),
         title=title,
@@ -216,7 +307,7 @@ def _parse_manga_detail(item: dict) -> MangaDetail:
         published_date=published_date,
         source="anilist",
         type="manga",
-        description=item.get("description"),
+        description=clean_desc if clean_desc else None,
         chapters=item.get("chapters"),
         volumes=item.get("volumes"),
         score=score,
@@ -240,6 +331,12 @@ async def search_mangas(query: str, limit: int = 20, page: int = 1) -> dict:
 
     total = data.get("pageInfo", {}).get("total", 0)
     items = [_parse_manga_summary(item) for item in data.get("media", [])]
+
+    q_lower = query.lower()
+    items = [
+        item for item in items 
+        if q_lower in item.title.lower() or any(q_lower in author.lower() for author in item.authors)
+    ]
 
     return {"total_items": total, "items": items}
 
@@ -311,3 +408,46 @@ async def get_popular_mangas(limit: int = 20, page: int = 1) -> dict:
     items = [_parse_manga_summary(item) for item in data.get("media", [])]
 
     return {"total_items": total, "items": items}
+
+
+async def search_manga_by_author(author_name: str, limit: int = 10) -> dict:
+    variables = {
+        "search": author_name
+    }
+    
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.post(ANILIST_URL, json={"query": AUTHOR_WORKS_QUERY, "variables": variables})
+        resp.raise_for_status()
+        data = resp.json().get("data", {}).get("Staff", {})
+        
+    media_edges = data.get("staffMedia", {}).get("edges", [])
+    
+    items = []
+    for edge in media_edges:
+        node = edge.get("node")
+        if node:
+            items.append(_parse_manga_summary(node))
+            
+    # Filter out anything more than limit since AniList perPage in staffMedia works differently sometimes
+    items = items[:limit]
+
+    return {"total_items": len(items), "items": items}
+
+
+async def get_manga_recommendations(anilist_id: str) -> list[MangaSummary]:
+    variables = {"id": int(anilist_id)}
+
+    async with httpx.AsyncClient(timeout=15.0) as client:
+        resp = await client.post(ANILIST_URL, json={"query": RECOMMENDATIONS_QUERY, "variables": variables})
+        resp.raise_for_status()
+        media = resp.json().get("data", {}).get("Media", {})
+
+    nodes = media.get("recommendations", {}).get("nodes", [])
+    
+    items = []
+    for node in nodes:
+        rec_media = node.get("mediaRecommendation")
+        if rec_media:
+            items.append(_parse_manga_summary(rec_media))
+
+    return items

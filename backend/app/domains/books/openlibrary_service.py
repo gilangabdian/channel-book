@@ -63,7 +63,6 @@ POPULAR_CATEGORIES = [
     {"id": "thriller", "name": "Thriller", "is_top": False},
     {"id": "travel", "name": "Travel", "is_top": False},
     {"id": "true_crime", "name": "True Crime", "is_top": False},
-    {"id": "young_adult_fiction", "name": "Young Adult", "is_top": False},
 ]
 
 
@@ -146,9 +145,85 @@ async def get_books_by_subject(subject: str, limit: int = 12, offset: int = 0) -
         data = resp.json()
 
     works = data.get("works", [])
-    items = [_parse_ol_book(work) for work in works]
+    raw_items = [_parse_ol_book(work) for work in works]
+    
+    # Deduplikasi
+    items = []
+    seen = set()
+    for item in raw_items:
+        if item.id not in seen:
+            seen.add(item.id)
+            items.append(item)
+            
     total = data.get("work_count", 0)
 
     result = {"total_items": total, "items": items}
     _set_cached(cache_key, result)
     return result
+
+
+from app.domains.books.schemas import BookDetail
+
+async def get_book_detail(ol_id: str) -> BookDetail:
+    """
+    Ambil detail lengkap satu buku dari Open Library API.
+    """
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        # Panggil endpoint works
+        resp = await client.get(f"{OPEN_LIBRARY_BASE}/works/{ol_id}.json")
+        resp.raise_for_status()
+        data = resp.json()
+
+        # Ekstrak data
+        title = data.get("title", "Unknown Title")
+        
+        desc_data = data.get("description", "")
+        description = desc_data.get("value") if isinstance(desc_data, dict) else desc_data
+        
+        categories = data.get("subjects", [])
+        
+        # Filter cover -1
+        valid_covers = [c for c in data.get("covers", []) if c != -1]
+        cover_image = f"https://covers.openlibrary.org/b/id/{valid_covers[0]}-L.jpg" if valid_covers else None
+
+        # Ambil data nama penulis secara paralel jika ada
+        authors = []
+        author_refs = data.get("authors", [])
+        if author_refs:
+            import asyncio
+            async def fetch_author(ref):
+                author_key = ref.get("author", {}).get("key")
+                if author_key:
+                    try:
+                        a_resp = await client.get(f"{OPEN_LIBRARY_BASE}{author_key}.json")
+                        if a_resp.status_code == 200:
+                            return a_resp.json().get("name")
+                    except Exception:
+                        pass
+                return None
+
+            fetched_authors = await asyncio.gather(*[fetch_author(ref) for ref in author_refs])
+            authors = [name for name in fetched_authors if name]
+
+        if not authors:
+            authors = ["Unknown"]
+    
+    return BookDetail(
+        id=ol_id,
+        title=title,
+        authors=authors,
+        cover_image=cover_image,
+        categories=categories[:5], # ambil max 5 aja
+        published_date=None,
+        source="openlibrary",
+        description=description,
+        page_count=None,
+        rating=None,
+        ratings_count=None,
+        publisher=None,
+        isbn_13=None,
+        isbn_10=None,
+        language=None,
+        preview_link=f"https://openlibrary.org/works/{ol_id}",
+        info_link=f"https://openlibrary.org/works/{ol_id}"
+    )

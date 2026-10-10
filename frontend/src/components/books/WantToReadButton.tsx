@@ -66,7 +66,7 @@ export function WantToReadButton({ itemId, itemType, className, variant = "icon"
       onClick={handleClick}
       title={isSaved ? "Remove from Want to Read" : "Want to Read"}
       className={cn(
-        "absolute top-2 right-2 p-2 rounded-full shadow-sm bg-white/90 backdrop-blur-sm border border-neutral-200 transition-all z-20",
+        "absolute top-1 right-1 p-1.5 rounded-full shadow-sm bg-white/90 backdrop-blur-sm border border-neutral-200 transition-all z-20",
         "hover:bg-[#A6B37D] hover:text-white hover:border-[#A6B37D]",
         "opacity-100 lg:opacity-0 group-hover:opacity-100", // Always visible on mobile & tablet, visible on hover on desktop
         isSaved ? "bg-[#A6B37D] text-white border-[#A6B37D] lg:opacity-100" : "text-neutral-500",
@@ -74,9 +74,9 @@ export function WantToReadButton({ itemId, itemType, className, variant = "icon"
       )}
     >
       {isSaved ? (
-        <BookmarkCheck className="size-4" />
+        <BookmarkCheck className="w-3.5 h-3.5" />
       ) : (
-        <BookmarkPlus className="size-4" />
+        <BookmarkPlus className="w-3.5 h-3.5" />
       )}
     </button>
   );

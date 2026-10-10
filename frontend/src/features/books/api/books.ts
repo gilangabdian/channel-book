@@ -59,13 +59,20 @@ export async function searchBooks(
   query: string,
   maxResults = 20,
   startIndex = 0,
+  orderBy = "relevance"
 ): Promise<BookSearchResponse> {
   const params = new URLSearchParams({
     q: query,
     max_results: String(maxResults),
     start_index: String(startIndex),
+    order_by: orderBy,
   });
-  return apiFetch<BookSearchResponse>(`/api/books/search?${params}`);
+  try {
+    return await apiFetch<BookSearchResponse>(`/api/books/search?${params}`);
+  } catch (error) {
+    console.error("Error in searchBooks:", error);
+    return { query, total_items: 0, items: [] };
+  }
 }
 
 /** Ambil detail lengkap satu buku. */
@@ -89,4 +96,20 @@ export async function getBooksByCategory(
     offset: String(offset),
   });
   return apiFetch<CategoryBooksResponse>(`/api/books/categories/${categoryId}/books?${params}`);
+}
+
+/** Cari buku berdasarkan author tertentu. */
+export async function getBooksByAuthor(
+  authorName: string,
+  limit = 10,
+): Promise<BookSearchResponse> {
+  const params = new URLSearchParams({
+    limit: String(limit),
+  });
+  return apiFetch<BookSearchResponse>(`/api/books/author/${encodeURIComponent(authorName)}/books?${params}`);
+}
+
+/** Ambil rekomendasi buku berdasarkan buku tertentu. */
+export async function getBookRecommendations(bookId: string): Promise<BookSearchResponse> {
+  return apiFetch<BookSearchResponse>(`/api/books/${bookId}/recommendations`);
 }

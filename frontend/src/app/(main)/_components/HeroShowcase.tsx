@@ -177,7 +177,7 @@ export function HeroShowcase({ books }: HeroShowcaseProps) {
 
               <div className="pt-6">
                 <Link
-                  href={`/books/${activeBook.id}`}
+                  href="/login"
                   className="inline-flex items-center justify-center px-8 py-3.5 bg-[#A6B37D] text-white font-bold rounded-lg hover:bg-[#8f9b6b] transition-colors shadow-sm">
                   Want to Read
                 </Link>
@@ -191,7 +191,7 @@ export function HeroShowcase({ books }: HeroShowcaseProps) {
       <div className="md:hidden mb-8">
         <CarouselRow title="Recommendations">
           {books.map((book) => (
-            <Link key={book.id} href={`/books/${book.id}`} className="shrink-0 snap-start relative block group">
+            <Link key={book.id} href={`/item/book/${book.id}`} className="shrink-0 snap-start relative block group">
               <div className="w-[160px] aspect-[2/3] bg-neutral-100 rounded-lg overflow-hidden relative shadow-sm border border-neutral-200 transition-shadow hover:shadow-md">
                 {book.cover_image ? (
                   <Image

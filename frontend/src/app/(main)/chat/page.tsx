@@ -34,7 +34,7 @@ export default function MobileChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white relative overflow-hidden">
+    <div className="flex flex-col min-h-[calc(100dvh-64px)] bg-white relative overflow-hidden">
       {/* Header */}
       <div className="h-14 flex items-center justify-between px-4 shrink-0 bg-white border-b border-neutral-200">
         {/* Kiri: Avatar Default Tanda Tanya */}

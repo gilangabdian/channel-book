@@ -1,24 +1,13 @@
-import Link from "next/link";
 import { searchBooks } from "@/features/books/api/books";
-import Image from "next/image";
 import { HeroShowcase } from "./_components/HeroShowcase";
 import { CarouselRow } from "./_components/CarouselRow";
-import { WantToReadButton } from "@/components/books/WantToReadButton";
+import { BookCard, Book } from "@/components/books/BookCard";
 import { getPublicCollections, Collection } from "@/features/collections/api/collections";
 import { CollectionCard } from "@/components/collections/CollectionCard";
+import { createClient } from "@/lib/supabase/server";
 
 import { getPopularManga } from "@/features/manga/api/manga";
 
-// Tipe untuk menampung buku dari API
-interface Book {
-  id: string;
-  title: string;
-  authors: string[];
-  cover_image: string | null;
-  categories: string[];
-  published_date: string | null;
-  type?: string; // untuk membedakan buku dan manga (opsional)
-}
 
 export default async function Home() {
   // Fetch data dari backend (error handling basic agar tidak crash jika backend mati)
@@ -26,19 +15,67 @@ export default async function Home() {
   let newReleases: Book[] = [];
   let publicCollections: Collection[] = [];
   let popularMangas: Book[] = [];
+  let communityPicks: Book[] = [];
+  let recentActivity: Book[] = [];
+
+  let isLoggedIn = false;
+  let user = null;
 
   try {
-    const [trendingRes, newRes, collectionsRes, mangaRes] = await Promise.all([
-      searchBooks("fiction", 10),
-      searchBooks("fantasy", 10),
-      getPublicCollections(10), // Fetch 10 collections
-      getPopularManga(10), // Fetch 10 popular mangas
-    ]);
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+    isLoggedIn = !!user;
+  } catch (err) {
+    console.error("Auth check failed on home:", err);
+  }
 
-    trendingBooks = trendingRes.items || [];
-    newReleases = newRes.items || [];
+  const currentYear = new Date().getFullYear().toString();
+
+  try {
+    const promises = [
+      searchBooks("fiction", 16, 0, "relevance"), // 5 for hero + 11 for others? Wait, we can fetch separately
+      searchBooks(currentYear, 16, 0, "newest"), // New Releases
+      getPublicCollections(10), // Fetch 10 collections
+      getPopularManga(16), // Fetch 16 popular mangas
+      searchBooks("fantasy", 16, 0, "relevance"), // Community Picks
+    ];
+
+    if (isLoggedIn) {
+      promises.push(searchBooks("sci-fi", 16, 0, "relevance")); // Recent activity (replace with actual recommendation later)
+    }
+
+    const results = await Promise.all(promises);
+
+    const trendingRes = results[0];
+    const newRes = results[1];
+    const collectionsRes = results[2] as Collection[];
+    const mangaRes = results[3];
+    const communityRes = results[4];
+    const recentRes = isLoggedIn ? results[5] : null;
+
+    trendingBooks = trendingRes?.items || [];
+    newReleases = newRes?.items || [];
     publicCollections = collectionsRes || [];
-    popularMangas = mangaRes.items || [];
+    popularMangas = mangaRes?.items || [];
+    communityPicks = communityRes?.items || [];
+    recentActivity = recentRes?.items || [];
+
+    // TAMPILKAN DUMMY DATA JIKA GOOGLE BOOKS API LIMIT
+    const createDummyBooks = (prefix: string) => Array.from({ length: 12 }).map((_, i) => ({
+      id: `dummy-${prefix}-${i}`,
+      title: `${prefix} Book ${i + 1}`,
+      authors: ["Unknown Author"],
+      cover_image: `https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=300`,
+      categories: ["Fiction"],
+      published_date: "2023",
+      source: "google" as const,
+    }));
+
+    if (trendingBooks.length === 0) trendingBooks = createDummyBooks("Trending");
+    if (newReleases.length === 0) newReleases = createDummyBooks("New Release");
+    if (communityPicks.length === 0) communityPicks = createDummyBooks("Community Pick");
+    if (recentActivity.length === 0) recentActivity = createDummyBooks("Recent");
 
     // TAMPILKAN DUMMY DATA SEMENTARA JIKA KOSONG
     if (publicCollections.length === 0) {
@@ -65,8 +102,6 @@ export default async function Home() {
 
   // Ambil 5 buku pertama dari trending untuk Hero Showcase
   const showcaseBooks = trendingBooks.slice(0, 5);
-  // Sisa buku untuk baris Trending
-  const remainingTrending = trendingBooks.slice(5);
 
   return (
     <div className="flex flex-col flex-1 pb-16 overflow-x-hidden pt-6 px-4 md:px-8 lg:px-12">
@@ -74,10 +109,9 @@ export default async function Home() {
       <HeroShowcase books={showcaseBooks} />
 
       <div className="space-y-12">
-        {/* 2. NEW RELEASES (Horizontal Scroll with < > buttons) */}
         <CarouselRow title="New Releases" href="/explore/new-releases">
-          {remainingTrending.length > 0
-            ? remainingTrending.map((book) => <BookCard key={book.id} book={book} />)
+          {newReleases.length > 0
+            ? newReleases.map((book) => <BookCard key={book.id} book={book} />)
             : // Skeletons
               Array.from({ length: 6 }).map((_, i) => (
                 <div
@@ -89,8 +123,8 @@ export default async function Home() {
 
         {/* 3. COMMUNITY PICKS (Horizontal Scroll with < > buttons) */}
         <CarouselRow title="Community Picks" href="/explore/community-picks">
-          {newReleases.length > 0
-            ? newReleases.map((book) => <BookCard key={book.id} book={book} />)
+          {communityPicks.length > 0
+            ? communityPicks.map((book) => <BookCard key={book.id} book={book} />)
             : Array.from({ length: 6 }).map((_, i) => (
                 <div
                   key={i}
@@ -99,20 +133,25 @@ export default async function Home() {
               ))}
         </CarouselRow>
         
-        {/* RECENT ACTIVITY DUMMY */}
-        <CarouselRow title="Inspired by your recent activity" href="/explore/recent">
-          {newReleases.length > 0
-            ? newReleases.map((book) => <BookCard key={book.id} book={book} />)
-            : Array.from({ length: 6 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="shrink-0 w-[160px] md:w-[200px] h-[240px] md:h-[300px] bg-neutral-200 animate-pulse rounded-lg snap-start"
-                />
-              ))}
-        </CarouselRow>
+        {/* RECENT ACTIVITY */}
+        {isLoggedIn && (
+          <CarouselRow 
+            title="Inspired by your recent activity" 
+            href={recentActivity.length > 10 ? "/explore/recent-activity" : undefined}
+          >
+            {recentActivity.length > 0
+              ? recentActivity.map((book) => <BookCard key={book.id} book={book} />)
+              : Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="shrink-0 w-[160px] md:w-[200px] h-[240px] md:h-[300px] bg-neutral-200 animate-pulse rounded-lg snap-start"
+                  />
+                ))}
+          </CarouselRow>
+        )}
         
         {/* POPULAR MANGA */}
-        <CarouselRow title="Popular Manga" href="/explore/manga">
+        <CarouselRow title="Popular Manga" href="/explore/popular-manga">
           {popularMangas.length > 0
             ? popularMangas.map((manga) => <BookCard key={manga.id} book={manga} />)
             : Array.from({ length: 6 }).map((_, i) => (
@@ -143,41 +182,4 @@ export default async function Home() {
   );
 }
 
-/**
- * Komponen Card Buku Minimalis
- */
-function BookCard({ book }: { book: Book }) {
-  return (
-    <Link href={`/books/${book.id}`} className="shrink-0 snap-start relative block group">
-      {/* Cover Buku */}
-      <div className="w-[160px] md:w-[200px] aspect-[2/3] bg-neutral-100 rounded-lg overflow-hidden relative shadow-sm border border-neutral-200 transition-shadow hover:shadow-md">
-        {book.cover_image ? (
-          <Image
-            src={book.cover_image.replace("http:", "https:")}
-            alt={book.title}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 160px, 200px"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center p-4 text-center bg-[#FEFAE0] text-[#A6B37D] font-bold text-lg">
-            {book.title}
-          </div>
-        )}
 
-        {/* Wishlist Button (Client Component) */}
-        <WantToReadButton itemId={book.id} itemType="book" />
-      </div>
-
-      {/* Teks di bawah cover */}
-      <div className="mt-3 max-w-[160px] md:max-w-[200px]">
-        <h3 className="font-bold text-neutral-900 text-sm md:text-base line-clamp-1 group-hover:text-[#A6B37D] transition-colors">
-          {book.title}
-        </h3>
-        <p className="text-xs md:text-sm text-neutral-500 line-clamp-1 mt-0.5">
-          {book.authors?.join(", ") || "Unknown"}
-        </p>
-      </div>
-    </Link>
-  );
-}

@@ -1,96 +1,146 @@
+"use client";
+
 import { searchBooks } from "@/features/books/api/books";
 import { searchManga } from "@/features/manga/api/manga";
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, Star, User, BookmarkPlus } from "lucide-react";
+import { BookOpen, Star, User } from "lucide-react";
 import { WantToReadButton } from "@/components/books/WantToReadButton";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import useSWR from "swr";
+import { Suspense } from "react";
+import { cn } from "@/lib/utils";
 
-interface PageProps {
-  searchParams: Promise<{
-    q?: string;
-    type?: string | string[]; // allow multiple types
-  }>;
+// Custom Checkbox Component
+function CustomCheckbox({ checked, onChange, label }: { checked: boolean, onChange: () => void, label: string }) {
+  return (
+    <label className="flex items-center gap-3 text-sm text-neutral-600 hover:text-neutral-900 transition-colors cursor-pointer group">
+      <div className={cn(
+        "relative flex items-center justify-center w-5 h-5 rounded border transition-colors",
+        checked ? "bg-[#A6B37D] border-[#A6B37D]" : "border-neutral-300 group-hover:border-[#A6B37D]"
+      )}>
+        {checked && (
+          <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        )}
+      </div>
+      <span className="capitalize font-medium">{label}</span>
+      <input type="checkbox" className="sr-only" checked={checked} onChange={onChange} />
+    </label>
+  );
 }
 
-export default async function SearchResultsPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const query = params.q || "";
+const fetcher = async ([q, types, sortBy]: [string, string[], string]) => {
+  if (!q) return [];
+  const fetchBooksPromise = types.includes("all") || types.includes("book") 
+    ? searchBooks(q, 20) : Promise.resolve({ items: [] });
+  const fetchMangaPromise = types.includes("all") || types.includes("manga")
+    ? searchManga(q, 20) : Promise.resolve({ items: [] });
   
-  let activeTypes: string[] = [];
-  if (Array.isArray(params.type)) {
-    activeTypes = params.type;
-  } else if (params.type) {
-    activeTypes = [params.type];
+  const [booksRes, mangaRes] = await Promise.all([fetchBooksPromise, fetchMangaPromise]);
+  
+  const formattedBooks = (booksRes?.items || []).map((b: any) => ({
+    id: b.id,
+    title: b.title,
+    cover_image: b.cover_image,
+    type: "book",
+    source: b.source,
+    authors: b.authors || [],
+    rating: b.rating || null,
+    page_count: b.page_count || null
+  }));
+
+  const formattedManga = (mangaRes?.items || []).map((m: any) => ({
+    id: m.id,
+    title: m.title_romaji || m.title,
+    cover_image: m.cover_image,
+    type: "manga",
+    source: "anilist",
+    authors: m.author ? [m.author] : [],
+    rating: m.average_score ? m.average_score / 10 : null,
+    page_count: m.chapters || null
+  }));
+
+  let results = [...formattedBooks, ...formattedManga];
+  
+  // Custom sorting
+  if (sortBy === "newest") {
+    // Basic fallback if year data exists (mock behavior since API is limited)
+  } else if (sortBy === "top_rated") {
+    results.sort((a, b) => (Number(b.rating) || 0) - (Number(a.rating) || 0));
   } else {
-    activeTypes = ["all"]; // default if no type is specified
+    // relevance - keep API order
   }
 
-  let results: any[] = [];
-  
-  if (query) {
-    const fetchBooks = activeTypes.includes("all") || activeTypes.includes("book");
-    const fetchManga = activeTypes.includes("all") || activeTypes.includes("manga");
+  return results;
+};
 
-    const [booksRes, mangaRes] = await Promise.all([
-      fetchBooks ? searchBooks(query, 20) : Promise.resolve({ items: [] }),
-      fetchManga ? searchManga(query, 20) : Promise.resolve({ items: [] })
-    ]);
+function SearchContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
 
-    const formattedBooks = (booksRes?.items || []).map((b: any) => ({
-      id: b.id,
-      title: b.title,
-      cover_image: b.cover_image,
-      type: "book",
-      source: b.source,
-      authors: b.authors || [],
-      rating: b.rating || null,
-      page_count: b.page_count || null
-    }));
+  const query = searchParams.get("q") || "";
+  const typesParam = searchParams.getAll("type");
+  const activeTypes = typesParam.length > 0 ? typesParam : ["all"];
+  const sortBy = searchParams.get("sort") || "relevance";
 
-    const formattedManga = (mangaRes?.items || []).map((m: any) => ({
-      id: m.id,
-      title: m.title_romaji || m.title,
-      cover_image: m.cover_image,
-      type: "manga",
-      source: "anilist",
-      authors: m.author ? [m.author] : [],
-      rating: m.average_score ? m.average_score / 10 : null,
-      page_count: m.chapters || null
-    }));
+  const { data: results, isValidating } = useSWR(
+    query ? [query, activeTypes, sortBy] : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+      revalidateOnFocus: false,
+      revalidateIfStale: false, // Ensures no network request if data is already cached!
+    }
+  );
 
-    results = [...formattedBooks, ...formattedManga];
-  }
+  const displayResults = results || [];
 
-  const getFilterUrl = (toggleType: string) => {
-    if (toggleType === "all") return `/search?q=${encodeURIComponent(query)}`;
-    
+  const handleTypeToggle = (toggleType: string) => {
     let newTypes = [...activeTypes.filter(t => t !== "all")];
-    if (newTypes.includes(toggleType)) {
-      newTypes = newTypes.filter(t => t !== toggleType);
+    if (toggleType === "all") {
+      newTypes = [];
     } else {
-      newTypes.push(toggleType);
+      if (newTypes.includes(toggleType)) {
+        newTypes = newTypes.filter(t => t !== toggleType);
+      } else {
+        newTypes.push(toggleType);
+      }
     }
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("type");
+    newTypes.forEach(t => params.append("type", t));
     
-    // If empty, return to all
-    if (newTypes.length === 0) {
-      return `/search?q=${encodeURIComponent(query)}`;
-    }
-    
-    const qs = newTypes.map(t => `type=${t}`).join('&');
-    return `/search?q=${encodeURIComponent(query)}&${qs}`;
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
+  const handleSortToggle = (sortType: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("sort", sortType);
+    router.push(`${pathname}?${params.toString()}`, { scroll: false });
   };
 
   return (
     <div className="min-h-full bg-neutral-50 pt-4 pb-16">
       <div className="container mx-auto max-w-6xl px-4">
-        
         <div className="flex flex-col md:flex-row gap-8 items-start">
           
           {/* LEFT: RESULTS LIST (70%) */}
-          <div className="w-full md:w-3/4">
-            {results.length > 0 ? (
+          <div className={cn(
+            "w-full md:w-3/4 relative transition-all duration-300",
+            isValidating ? "opacity-60 blur-[2px] bg-[#A6B37D]/5 pointer-events-none rounded-xl" : "opacity-100"
+          )}>
+            {/* Overlay for blur effect with brand color */}
+            {isValidating && (
+              <div className="absolute inset-0 z-50 bg-[#A6B37D]/10 rounded-xl animate-pulse" />
+            )}
+
+            {displayResults.length > 0 ? (
               <div className="flex flex-col gap-4">
-                {results.map((item, idx) => (
+                {displayResults.map((item, idx) => (
                   <Link 
                     key={`${item.type}-${item.id}-${idx}`}
                     href={`/item/${item.type}/${item.id}`}
@@ -122,7 +172,7 @@ export default async function SearchResultsPage({ searchParams }: PageProps) {
                       </div>
                       
                       <div className="pr-10">
-                        <span className="inline-block px-2 py-1 bg-neutral-100 text-[10px] font-bold text-neutral-600 uppercase tracking-wider rounded-md mb-2">
+                        <span className="inline-block px-2 py-1 bg-[#A6B37D]/10 text-[10px] font-bold text-[#A6B37D] uppercase tracking-wider rounded-md mb-2">
                           {item.type}
                         </span>
                         
@@ -159,7 +209,9 @@ export default async function SearchResultsPage({ searchParams }: PageProps) {
                 <BookOpen className="size-12 text-neutral-300 mb-4" />
                 <h3 className="text-xl font-bold text-neutral-900 mb-2">No results found</h3>
                 <p className="text-neutral-500 max-w-md">
-                  We couldn&apos;t find any books or manga matching your search. Try using different keywords.
+                  {query 
+                    ? "We couldn't find any books or manga matching your search. Try using different keywords." 
+                    : "Enter a search term to find books and manga."}
                 </p>
               </div>
             )}
@@ -178,36 +230,33 @@ export default async function SearchResultsPage({ searchParams }: PageProps) {
                     {["all", "book", "manga"].map((type) => {
                       const isActive = activeTypes.includes(type) || (type === "all" && activeTypes.includes("all"));
                       return (
-                        <Link 
-                          key={type} 
-                          href={getFilterUrl(type)}
-                          className="flex items-center gap-3 text-sm text-neutral-600 hover:text-neutral-900 transition-colors"
-                        >
-                          <input 
-                            type="checkbox" 
-                            checked={isActive}
-                            readOnly
-                            className="size-4 rounded border-neutral-300 text-[#A6B37D] focus:ring-[#A6B37D] cursor-pointer"
-                          />
-                          <span className="capitalize">{type}</span>
-                        </Link>
+                        <CustomCheckbox 
+                          key={type}
+                          label={type}
+                          checked={isActive}
+                          onChange={() => handleTypeToggle(type)}
+                        />
                       );
                     })}
                   </div>
                 </div>
 
-                {/* Additional filters can go here (Language, Author, etc.) */}
+                {/* Sorted By Filter */}
                 <div>
-                  <h4 className="text-sm font-semibold text-neutral-700 mb-3">Language (Coming Soon)</h4>
-                  <div className="space-y-3 opacity-50 pointer-events-none">
-                    <label className="flex items-center gap-3 text-sm text-neutral-600">
-                      <input type="checkbox" className="size-4 rounded border-neutral-300 text-[#A6B37D]" />
-                      Indonesian (id)
-                    </label>
-                    <label className="flex items-center gap-3 text-sm text-neutral-600">
-                      <input type="checkbox" className="size-4 rounded border-neutral-300 text-[#A6B37D]" />
-                      English (en)
-                    </label>
+                  <h4 className="text-sm font-semibold text-neutral-700 mb-3">Sorted By</h4>
+                  <div className="space-y-3">
+                    {[
+                      { id: "relevance", label: "Relevance" },
+                      { id: "newest", label: "Newest" },
+                      { id: "top_rated", label: "Top Rated" }
+                    ].map((sortOption) => (
+                      <CustomCheckbox 
+                        key={sortOption.id}
+                        label={sortOption.label}
+                        checked={sortBy === sortOption.id}
+                        onChange={() => handleSortToggle(sortOption.id)}
+                      />
+                    ))}
                   </div>
                 </div>
 
@@ -218,5 +267,13 @@ export default async function SearchResultsPage({ searchParams }: PageProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SearchResultsPage() {
+  return (
+    <Suspense fallback={<div className="p-12 text-center text-neutral-500">Loading Search...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }

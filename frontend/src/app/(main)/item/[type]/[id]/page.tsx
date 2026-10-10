@@ -4,6 +4,10 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { Star, BookOpen, Calendar, User } from "lucide-react";
 import { WantToReadButton } from "@/components/books/WantToReadButton";
+import { AuthorWorks } from "@/components/item/AuthorWorks";
+import { DummyComments } from "@/components/item/DummyComments";
+import { CarouselRow } from "@/app/(main)/_components/CarouselRow";
+import { BookCard } from "@/components/books/BookCard";
 
 interface PageProps {
   params: Promise<{
@@ -39,6 +43,34 @@ export default async function ItemDetailPage({ params }: PageProps) {
   const description = item.description || item.synopsis || "No description available.";
   const publishedDate = item.published_date || item.start_date || "Unknown";
   const pageCount = item.page_count || item.chapters || null;
+  const categories = item.categories || item.genres || [];
+
+  // Fetch author works & similar items concurrently if possible, or sequential is fine here
+  let authorWorks = [];
+  let similarItems = [];
+  
+  if (authors && authors.length > 0) {
+    const authorName = authors[0];
+    if (type === "book") {
+      const { getBooksByAuthor } = await import("@/features/books/api/books");
+      const res = await getBooksByAuthor(authorName, 10);
+      authorWorks = (res?.items || []).filter((w: any) => w.id !== id).map((w:any) => ({...w, type: "book"}));
+    } else {
+      const { getMangaByAuthor } = await import("@/features/manga/api/manga");
+      const res = await getMangaByAuthor(authorName, 10);
+      authorWorks = (res?.items || []).filter((w: any) => w.id !== id).map((w:any) => ({...w, type: "manga"}));
+    }
+  }
+
+  if (type === "book") {
+    const { getBookRecommendations } = await import("@/features/books/api/books");
+    const res = await getBookRecommendations(id);
+    similarItems = (res?.items || []).filter((w: any) => w.id !== id).map((w:any) => ({...w, type: "book"}));
+  } else {
+    const { getMangaRecommendations } = await import("@/features/manga/api/manga");
+    const res = await getMangaRecommendations(id);
+    similarItems = (res?.items || []).filter((w: any) => w.id !== id).map((w:any) => ({...w, type: "manga"}));
+  }
 
   return (
     <div className="min-h-full bg-white pt-4 pb-20">
@@ -78,7 +110,7 @@ export default async function ItemDetailPage({ params }: PageProps) {
           <div className="w-full md:w-2/3 lg:w-3/4 flex-1">
             <div className="space-y-6">
               <div>
-                <span className="inline-block px-3 py-1 bg-neutral-100 text-xs font-bold text-neutral-600 uppercase tracking-wider rounded-md mb-3">
+                <span className="inline-block px-3 py-1 bg-[#A6B37D]/10 text-xs font-bold text-[#A6B37D] uppercase tracking-wider rounded-md mb-3">
                   {type}
                 </span>
                 
@@ -92,6 +124,16 @@ export default async function ItemDetailPage({ params }: PageProps) {
                     {authors && authors.length > 0 ? authors.join(", ") : "Unknown Author"}
                   </span>
                 </div>
+
+                {categories && categories.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 mt-4">
+                    {categories.map((c: string, i: number) => (
+                      <span key={i} className="px-3 py-1 bg-neutral-100 hover:bg-neutral-200 transition-colors cursor-default text-neutral-700 text-xs font-bold rounded-full border border-neutral-200">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Stats */}
@@ -125,6 +167,31 @@ export default async function ItemDetailPage({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        {/* Extra Sections (Full Width) */}
+        <div className="mt-16 border-t border-neutral-100 pt-8">
+          {/* Author Works Vertical List */}
+          {authors && authors.length > 0 && authorWorks.length > 0 && (
+            <AuthorWorks authorName={authors[0]} items={authorWorks} />
+          )}
+
+          {/* More Like This Carousel */}
+          {similarItems.length > 0 && (
+            <div className="mt-12 mb-8">
+              <CarouselRow title="More Like This" href="">
+                {similarItems.map((similarItem: any) => (
+                  <BookCard key={similarItem.id} book={similarItem} />
+                ))}
+              </CarouselRow>
+            </div>
+          )}
+
+          {/* Comments Section */}
+          <div className="mt-12">
+            <DummyComments />
+          </div>
+        </div>
+
       </div>
     </div>
   );

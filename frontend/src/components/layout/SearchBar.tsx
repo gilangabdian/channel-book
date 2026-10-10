@@ -13,6 +13,7 @@ type SearchResult = {
   title: string;
   cover_url: string | null;
   type: "book" | "manga";
+  authors?: string[];
   source?: string;
 };
 
@@ -81,6 +82,7 @@ export function SearchBar() {
           id: b.id,
           title: b.title,
           cover_url: b.cover_image,
+          authors: b.authors || [],
           type: "book",
           source: b.source,
         }));
@@ -89,6 +91,7 @@ export function SearchBar() {
           id: m.id,
           title: m.title,
           cover_url: m.cover_image,
+          authors: m.authors || [],
           type: "manga",
         }));
 
@@ -283,8 +286,10 @@ export function SearchBar() {
 
                         <div className="flex-1 min-w-0 flex flex-col">
                           <span className="text-sm font-medium text-neutral-800 truncate">{item.title}</span>
-                          <span className="text-[11px] font-medium text-neutral-500 uppercase tracking-wider">
-                            {item.type}
+                          <span className="text-[11px] font-medium text-neutral-500 flex items-center gap-1.5">
+                            <span className="capitalize">{item.type}</span>
+                            <span className="text-[8px]">•</span>
+                            <span className="truncate">{item.authors && item.authors.length > 0 ? item.authors.join(", ") : "Unknown"}</span>
                           </span>
                         </div>
 

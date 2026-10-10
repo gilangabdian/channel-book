@@ -97,7 +97,6 @@ async def get_mangas_by_category(
             detail=f"Gagal mengambil manga untuk genre '{genre_id}': {repr(e)}",
         )
 
-
 @router.get("/{mal_id}", response_model=MangaDetail)
 async def get_manga_detail(mal_id: str):
     """
@@ -108,3 +107,38 @@ async def get_manga_detail(mal_id: str):
         return await anilist_service.get_manga_detail(mal_id)
     except Exception as e:
         raise HTTPException(status_code=502, detail=f"Gagal mengambil detail manga: {repr(e)}")
+
+
+@router.get("/author/{author_name}/mangas", response_model=MangaSearchResponse)
+async def get_mangas_by_author(
+    author_name: str,
+    limit: int = Query(default=10, ge=1, le=25, description="Jumlah hasil"),
+):
+    """
+    Cari manga yang ditulis oleh author tertentu (menggunakan AniList Staff query).
+    """
+    try:
+        result = await anilist_service.search_manga_by_author(author_name, limit)
+        return MangaSearchResponse(
+            query=f"author:{author_name}",
+            total_items=result["total_items"],
+            items=result["items"],
+        )
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Gagal mengambil manga by author: {repr(e)}")
+
+
+@router.get("/{manga_id}/recommendations", response_model=MangaSearchResponse)
+async def get_manga_recommendations(manga_id: str):
+    """
+    Ambil rekomendasi manga terkait berdasarkan fitur rekomendasi komunitas AniList.
+    """
+    try:
+        items = await anilist_service.get_manga_recommendations(manga_id)
+        return MangaSearchResponse(
+            query=f"recommendations:{manga_id}",
+            total_items=len(items),
+            items=items,
+        )
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"Gagal mengambil rekomendasi: {repr(e)}")

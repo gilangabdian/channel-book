@@ -48,7 +48,6 @@ export const FALLBACK_ALL_GENRES = [
   { id: "thriller", name: "Thriller" },
   { id: "travel", name: "Travel" },
   { id: "true_crime", name: "True Crime" },
-  { id: "young_adult_fiction", name: "Young Adult" },
 ];
 
 /** Helper: ambil gradient untuk kategori tertentu, atau random gradient. */

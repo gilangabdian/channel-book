@@ -35,8 +35,8 @@ export async function getPublicCollections(limit: number = 10): Promise<Collecti
       cover_url,
       user_id,
       is_public,
-      collection_books (
-        book_id,
+      collection_items (
+        item_id,
         title,
         cover_url
       )
@@ -58,6 +58,10 @@ export async function getPublicCollections(limit: number = 10): Promise<Collecti
     cover_url: col.cover_url as string | null,
     user_id: col.user_id as string,
     is_public: col.is_public as boolean,
-    books: (col.collection_books as CollectionBook[]) || [],
+    books: Array.isArray(col.collection_items) ? col.collection_items.map((item: any) => ({
+      book_id: item.item_id,
+      title: item.title,
+      cover_url: item.cover_url,
+    })) : [],
   }));
 }
